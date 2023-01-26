@@ -18,7 +18,7 @@ CONFIG_PATH = CONFIG_DIR_PATH / CONFIG_FILENAME
 # TODO this will obviously have to change to fit scanning declarations
 TEMPLATE_CONF_DICT = {
     "scanning": "mock",
-    "scopeless": False,
+    "scopeless": True,
     "sample_rate": 40000,
     "voxel_size": {
         "x": 0.3,
@@ -62,7 +62,8 @@ TEMPLATE_CONF_DICT = {
         "default_binning": 1,
     },
     "light_source": {"name": "mock", "port": "COM4", "intensity_units": "mock"},
-    "external_communication": {"name": "stytra", "address": "tcp://O1-589:5555"},
+    "external_communication": "none",
+    # "external_communication": {"name": "stytra", "address": "tcp://O1-589:5555"},
     "notifier": "none",
     "notifier_options": {},
     "array_ram_MB": 450,
