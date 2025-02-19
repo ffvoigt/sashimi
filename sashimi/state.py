@@ -5,6 +5,7 @@ from typing import Optional
 from lightparam.param_qt import ParametrizedQt
 from lightparam import Param, ParameterTree
 from sashimi.hardware.light_source import light_source_class_dict
+from typing import Union
 
 # from sashimi.hardware import light_source_class_dict
 from sashimi.processes.scanning import ScannerProcess
@@ -224,16 +225,19 @@ class Calibration(ParametrizedQt):
 
 
 def get_voxel_size(
-    scanning_settings: ZRecordingSettings,
+    scanning_settings: Union[ZRecordingSettings, SinglePlaneSettings],
     camera_settings: CameraSettings,
 ):
-    scan_length = (
-        scanning_settings.piezo_scan_range[1] - scanning_settings.piezo_scan_range[0]
-    )
-
     binning = int(camera_settings.binning)
 
-    inter_plane = scan_length / scanning_settings.n_planes
+    if isinstance(scanning_settings, SinglePlaneSettings):
+        inter_plane = 1
+    else:
+        scan_length = (
+            scanning_settings.piezo_scan_range[1]
+            - scanning_settings.piezo_scan_range[0]
+        )
+        inter_plane = scan_length / scanning_settings.n_planes
 
     return (
         inter_plane,
@@ -244,13 +248,16 @@ def get_voxel_size(
 
 def convert_save_params(
     save_settings: SaveSettings,
-    scanning_settings: ZRecordingSettings,
+    scanning_settings: Union[ZRecordingSettings, SinglePlaneSettings],
     camera_settings: CameraSettings,
     trigger_settings: TriggerSettings,
 ):
-    n_planes = scanning_settings.n_planes - (
-        scanning_settings.n_skip_start + scanning_settings.n_skip_end
-    )
+    if isinstance(scanning_settings, SinglePlaneSettings):
+        n_planes = 0
+    else:
+        n_planes = scanning_settings.n_planes - (
+            scanning_settings.n_skip_start + scanning_settings.n_skip_end
+        )
 
     return SavingParameters(
         output_dir=Path(save_settings.save_dir),
@@ -258,6 +265,9 @@ def convert_save_params(
         notification_email=str(save_settings.notification_email),
         volumerate=scanning_settings.frequency,
         voxel_size=get_voxel_size(scanning_settings, camera_settings),
+        crop=[
+            int(item) for item in camera_settings.roi
+        ],  # int conversion makes it json serializable
     )
 
 
@@ -472,12 +482,21 @@ class State:
 
     @property
     def save_params(self):
-        return convert_save_params(
-            self.save_settings,
-            self.volume_setting,
-            self.camera_settings,
-            self.trigger_settings,
-        )
+        if self.global_state == GlobalState.PLANAR_PREVIEW:
+            save_p = convert_save_params(
+                self.save_settings,
+                self.single_plane_settings,
+                self.camera_settings,
+                self.trigger_settings,
+            )
+        else:
+            save_p = convert_save_params(
+                self.save_settings,
+                self.volume_setting,
+                self.camera_settings,
+                self.trigger_settings,
+            )
+        return save_p
 
     @property
     def scan_params(self):
@@ -652,7 +671,6 @@ class State:
         self.dispatcher.calibration_ref_queue.put(self.calibration_ref)
 
     def reset_noise_subtraction(self):
-
         self.calibration_ref = None
         self.noise_subtraction_active.clear()
 
