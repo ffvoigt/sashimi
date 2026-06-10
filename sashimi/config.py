@@ -69,7 +69,7 @@ TEMPLATE_CONF_DICT = {
                    "filter_options": [ "Filter Position 1", "Filter Position 2", "Filter Position 3",]
                    },
     #"external_communication": "none",
-    "external_communication": {"name": "stytra", "address": "tcp://O1-589:5555"},
+    "external_communication": {"name": "stytra", "address": "tcp://127.0.0.1:5555"},
     "notifier": "none",
     "notifier_options": {},
     "array_ram_MB": 450,

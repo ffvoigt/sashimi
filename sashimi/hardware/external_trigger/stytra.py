@@ -12,7 +12,8 @@ class StytraComm(AbstractComm):
         zmq_context = zmq.Context()
         with zmq_context.socket(zmq.REQ) as zmq_socket:
             zmq_socket.connect(self.address)
-            zmq_socket.send_json(config)
+            #zmq_socket.send_json(config)
+            zmq_socket.send_json({"trigger": "start"})
             poller = zmq.Poller()
             poller.register(zmq_socket, zmq.POLLIN)
             duration = None
