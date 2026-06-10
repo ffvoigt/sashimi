@@ -91,9 +91,9 @@ class PlanarScanningSettings(ParametrizedQt):
     def __init__(self):
         super().__init__()
         self.name = "scanning/planar_scanning"
-        self.lateral_range = Param((0, 0.5), (-2, 2))
+        self.lateral_range = Param((0, 0.5), (-3, 3))
         self.lateral_frequency = Param(500.0, (10, 1000), unit="Hz")
-        self.frontal_range = Param((0, 0.5), (-2, 2))
+        self.frontal_range = Param((0, 0.5), (-3, 3))
         self.frontal_frequency = Param(500.0, (10, 1000), unit="Hz")
 
 
@@ -101,16 +101,16 @@ class CalibrationZSettings(ParametrizedQt):
     def __init__(self):
         super().__init__()
         self.name = "scanning/z_manual"
-        self.piezo = Param(200.0, (0.0, 400.0), unit="um", gui="slider")
-        self.lateral = Param(0.0, (-2.0, 2.0), gui="slider")
-        self.frontal = Param(0.0, (-2.0, 2.0), gui="slider")
+        self.piezo = Param(200.0, (0.0, 800.0), unit="um", gui="slider")
+        self.lateral = Param(0.0, (-3.0, 3.0), gui="slider")
+        self.frontal = Param(0.0, (-3.0, 3.0), gui="slider")
 
 
 class SinglePlaneSettings(ParametrizedQt):
     def __init__(self):
         super().__init__()
         self.name = "scanning/z_single_plane"
-        self.piezo = Param(200.0, (0.0, 400.0), unit="um", gui="slider")
+        self.piezo = Param(200.0, (0.0, 800.0), unit="um", gui="slider")
         self.frequency = Param(1.0, (0.1, 1000), unit="planes/s (Hz)")
 
 
@@ -118,9 +118,9 @@ class ZRecordingSettings(ParametrizedQt):
     def __init__(self):
         super().__init__(self)
         self.name = "scanning/volumetric_recording"
-        self.piezo_scan_range = Param((180.0, 220.0), (0.0, 400.0), unit="um")
+        self.piezo_scan_range = Param((150.0, 250.0), (0.0, 800.0), unit="um")
         self.frequency = Param(1.0, (0.1, 100), unit="volumes/s (Hz)")
-        self.n_planes = Param(4, (2, 100))
+        self.n_planes = Param(10, (2, 100))
         self.n_skip_start = Param(0, (0, 20))
         self.n_skip_end = Param(0, (0, 20))
 

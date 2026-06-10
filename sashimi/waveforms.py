@@ -60,10 +60,12 @@ class TriangleWaveform(Waveform):
             * 2
         )
 
-
+# Default high is 5V
 @jit(nopython=True)
 def set_impulses(buffer, n_planes, n_skip_start, n_skip_end, high=5):
     buffer[:] = 0
     n_between_planes = int(round(len(buffer) / n_planes))
     for i in range(n_skip_start, n_planes - n_skip_end):
-        buffer[i * n_between_planes] = high
+        # set several samples to high so trigger is easier to see on a digital oscilloscope
+        for j in range(60):
+            buffer[i * n_between_planes + j] = high
