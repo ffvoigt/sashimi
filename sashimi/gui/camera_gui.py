@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QCheckBox,
+    QSizePolicy,
 )
 from lightparam.gui import ParameterGui
 from lightparam import Param
@@ -87,7 +88,7 @@ class ViewingWidget(QWidget):
         self.is_drift_active = False
 
         s = self.get_fullframe_size()
-        self.image_shape = (1, s, s)
+        self.image_shape = (1, s[0], s[1])
 
         self.viewer = napari.Viewer(show=False)
         # setting napari style to sashimi's
@@ -133,6 +134,7 @@ class ViewingWidget(QWidget):
         )
 
         self.main_layout = QVBoxLayout()
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.bottom_layout = QHBoxLayout()
 
         self.viewer.window.qt_viewer.viewerButtons.consoleButton.hide()
@@ -166,7 +168,10 @@ class ViewingWidget(QWidget):
 
         self.bottom_layout.addStretch()
 
-        self.main_layout.addWidget(self.viewer.window.qt_viewer)
+        self.viewer.window.qt_viewer.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
+        self.main_layout.addWidget(self.viewer.window.qt_viewer, stretch=1)
         self.main_layout.addLayout(self.bottom_layout)
         self.setLayout(self.main_layout)
 
@@ -241,8 +246,8 @@ class ViewingWidget(QWidget):
         if current_image is None:
             return
 
-        # If not volumetric or out of range, reset indexes:
-        if current_image.shape[0] == 1:
+        # If transitioning from volumetric to single plane, reset dim sliders:
+        if current_image.shape[0] == 1 and self.image_shape[0] != 1:
             self.viewer.dims.reset()
         self.frame_layer.data = current_image
         # self.frame_layer.scale = [self.voxel_size[0] / self.voxel_size[1], 1.0, 1.0]
