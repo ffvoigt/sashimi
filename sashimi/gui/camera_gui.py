@@ -92,7 +92,7 @@ class ViewingWidget(QWidget):
 
         self.viewer = napari.Viewer(show=False)
         # setting napari style to sashimi's
-        self.viewer.window.qt_viewer.setStyleSheet(style)
+        self._get_qt_viewer().setStyleSheet(style)
 
         # Add image layer that will be used to show frames/volumes:
         self.frame_layer = self.viewer.add_image(
@@ -137,19 +137,19 @@ class ViewingWidget(QWidget):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.bottom_layout = QHBoxLayout()
 
-        self.viewer.window.qt_viewer.viewerButtons.consoleButton.hide()
-        self.viewer.window.qt_viewer.viewerButtons.rollDimsButton.hide()
-        self.viewer.window.qt_viewer.viewerButtons.gridViewButton.hide()
-        self.viewer.window.qt_viewer.viewerButtons.transposeDimsButton.hide()
-        self.viewer.window.qt_viewer.viewerButtons.resetViewButton.setText("Reset view")
+        self._get_qt_viewer().viewerButtons.consoleButton.hide()
+        self._get_qt_viewer().viewerButtons.rollDimsButton.hide()
+        self._get_qt_viewer().viewerButtons.gridViewButton.hide()
+        self._get_qt_viewer().viewerButtons.transposeDimsButton.hide()
+        self._get_qt_viewer().viewerButtons.resetViewButton.setText("Reset view")
 
-        self.ndisplay_button = self.viewer.window.qt_viewer.viewerButtons.ndisplayButton
+        self.ndisplay_button = self._get_qt_viewer().viewerButtons.ndisplayButton
         self.ndisplay_button.setText("3D mode")
         self.ndisplay_button.clicked.connect(self.toggle_ndims)
 
         self.viewer.dims.events.connect(self.update_current_plane)
 
-        self.bottom_layout.addWidget(self.viewer.window.qt_viewer.viewerButtons)
+        self.bottom_layout.addWidget(self._get_qt_viewer().viewerButtons)
 
         self.auto_contrast_chk = QCheckBox("Autoadjust contrast")
 
@@ -168,10 +168,10 @@ class ViewingWidget(QWidget):
 
         self.bottom_layout.addStretch()
 
-        self.viewer.window.qt_viewer.setSizePolicy(
+        self._get_qt_viewer().setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
-        self.main_layout.addWidget(self.viewer.window.qt_viewer, stretch=1)
+        self.main_layout.addWidget(self._get_qt_viewer(), stretch=1)
         self.main_layout.addLayout(self.bottom_layout)
         self.setLayout(self.main_layout)
 
@@ -198,9 +198,13 @@ class ViewingWidget(QWidget):
         self.state.light_source_settings.sig_param_changed.connect(
             self.launch_delayed_contrast_reset
         )
-        self.viewer.window.qt_viewer.viewerButtons.resetViewButton.pressed.connect(
+        self._get_qt_viewer().viewerButtons.resetViewButton.pressed.connect(
             self.reset_contrast
         )
+
+    def _get_qt_viewer(self):
+        # Bypass deprecated Window.qt_viewer property (removed in napari 0.5.0)
+        return self.viewer.window._qt_window._qt_viewer
 
     def get_fullframe_size(self):
         """Maximum size of the image at current binning. As stated above, we assume square sensors."""
