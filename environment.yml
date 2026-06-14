@@ -5,6 +5,5 @@ dependencies:
   - python=3.9
   - pip
   - pyqt
-  - numpy
-  - scipy
-
+  - numpy>=1.21,<2.0
+  - scipy>=1.7

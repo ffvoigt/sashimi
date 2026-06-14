@@ -23,7 +23,7 @@ setup(
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Science/Research",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords="imaging microscopy lightsheet",
     description="A user-friendly software for efficient control of digital scanned light sheet microscopes (DSLMs).",

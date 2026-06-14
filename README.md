@@ -23,7 +23,7 @@ hardware by other vendors (we will help with and welcome contributions for suppo
  
 ## Installation
 
-[Install the latest Anaconda](https://www.anaconda.com/) distribution of Python 3.
+[Install miniforge](https://github.com/conda-forge/miniforge). We will be using mamba as a fast package manager. 
 
 Clone this repository and navigate to the main folder `../sashimi`
 
@@ -31,11 +31,11 @@ Clone this repository and navigate to the main folder `../sashimi`
 
 It is a good practice to create an environment for every project. The provided `environment.yml` sets up almost all required dependencies (see below).
 
-    conda env create -f {path to environment.yml}
+    mamba env create -f {path to environment.yml}
 
 You can activate the environment by running:
 
-    conda activate sashimi
+    mamba activate sashimi
     
 After this you moght have to install two extra dependencies for controlling a Cobolt laser:
 
