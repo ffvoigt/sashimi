@@ -1,21 +1,15 @@
 from pathlib import Path
+import os
 import click
 import toml
-from lightparam import set_nested, get_nested
+from lightparam.core import set_nested, get_nested
 
 CONFIG_FILENAME = "hardware_config.toml"
-CONFIG_DIR_PATH = Path.home() / ".sashimi"
-CONFIG_DIR_PATH.mkdir(exist_ok=True)
-PRESETS_DIR_PATH = Path.home() / "presets"
-PRESETS_DIR_PATH.mkdir(exist_ok=True)
-LOGS_DIR_PATH = Path.home() / "logs"
-LOGS_DIR_PATH.mkdir(exist_ok=True)
-SCOPE_INSTRUCTIONS_PATH = Path()
 
-CONFIG_PATH = CONFIG_DIR_PATH / CONFIG_FILENAME
+_PACKAGE_CONFIG_DIR = Path(__file__).parent / "config"
 
-# 2 level dictionary for sections and values:
-# TODO this will obviously have to change to fit scanning declarations
+_config_path = None
+
 TEMPLATE_CONF_DICT = {
     "scanning": "mock",
     "scopeless": True,
@@ -26,9 +20,9 @@ TEMPLATE_CONF_DICT = {
     },
     "default_paths": {
         "data": str(Path.home()),
-        "presets": str(PRESETS_DIR_PATH),
-        "log": str(LOGS_DIR_PATH),
-        "scope_instructions": str(SCOPE_INSTRUCTIONS_PATH),
+        "presets": str(Path.home() / "presets"),
+        "log": str(Path.home() / "logs"),
+        "scope_instructions": "",
     },
     "z_board": {
         "read": {
@@ -63,12 +57,16 @@ TEMPLATE_CONF_DICT = {
     },
     "light_source": {"name": "mock", "port": "COM4", "intensity_units": "mock"},
     "shutter": {"name": "mock", "port": "PXI6259/port0/line0"},
-    "filterwheel":{"name": "mock", 
-                   "port": "COM9", 
-                   "default_filter": "Filter Position 1",
-                   "filter_options": [ "Filter Position 1", "Filter Position 2", "Filter Position 3",]
-                   },
-    #"external_communication": "none",
+    "filterwheel": {
+        "name": "mock",
+        "port": "COM9",
+        "default_filter": "Filter Position 1",
+        "filter_options": [
+            "Filter Position 1",
+            "Filter Position 2",
+            "Filter Position 3",
+        ],
+    },
     "external_communication": {"name": "stytra", "address": "tcp://127.0.0.1:5555"},
     "notifier": "none",
     "notifier_options": {},
@@ -76,68 +74,79 @@ TEMPLATE_CONF_DICT = {
 }
 
 
-def write_default_config(file_path=CONFIG_PATH, template=TEMPLATE_CONF_DICT):
-    """Write configuration file at first repo usage. In this way,
-    we don't need to keep a confusing template config file in the repo.
+def set_config_path(path):
+    global _config_path
+    _config_path = Path(path)
+    os.environ["SASHIMI_CONFIG_PATH"] = str(_config_path)
 
-    Parameters
-    ----------
-    file_path : Path object
-        Path of the config file (optional).
-    template : dict
-        Template of the config file to be written (optional).
 
-    """
+def _resolve_config_path():
+    global _config_path
+    if _config_path is not None:
+        return _config_path
 
+    env_path = os.environ.get("SASHIMI_CONFIG_PATH")
+    if env_path:
+        _config_path = Path(env_path)
+        return _config_path
+
+    default_path = _PACKAGE_CONFIG_DIR / "default.toml"
+    if default_path.exists():
+        _config_path = default_path
+    else:
+        toml_files = sorted(_PACKAGE_CONFIG_DIR.glob("*.toml"))
+        if len(toml_files) == 1:
+            _config_path = toml_files[0]
+        elif len(toml_files) > 1:
+            _config_path = _prompt_config_selection(toml_files)
+        else:
+            _PACKAGE_CONFIG_DIR.mkdir(exist_ok=True)
+            _config_path = default_path
+            write_default_config(_config_path)
+
+    os.environ["SASHIMI_CONFIG_PATH"] = str(_config_path)
+    return _config_path
+
+
+def _prompt_config_selection(toml_files):
+    click.echo("Multiple configuration files found:")
+    for i, f in enumerate(toml_files, 1):
+        click.echo(f"  {i}. {f.name}")
+    choice = click.prompt(
+        "Select configuration",
+        type=click.IntRange(1, len(toml_files)),
+        default=1,
+    )
+    return toml_files[choice - 1]
+
+
+def write_default_config(file_path=None, template=None):
+    if file_path is None:
+        file_path = _resolve_config_path()
+    if template is None:
+        template = TEMPLATE_CONF_DICT
     with open(file_path, "w") as f:
         toml.dump(template, f)
 
 
-def read_config(file_path=CONFIG_PATH):
-    """Read Sashimi config.
-
-    Parameters
-    ----------
-    file_path : Path object
-        Path of the config file (optional).
-
-    Returns
-    -------
-    ConfigParser object
-        sashimi configuration
-    """
-
-    # If no config file exists yet, write the default one:
+def read_config(file_path=None):
+    if file_path is None:
+        file_path = _resolve_config_path()
     if not file_path.exists():
-        write_default_config()
-
+        write_default_config(file_path)
     return toml.load(file_path)
 
 
-def write_config_value(dict_path, val, file_path=CONFIG_PATH):
-    """Write a new value in the config file. To make things simple, ignore
-    sections and look directly for matching parameters names.
+def write_config_value(dict_path, val, file_path=None):
+    if file_path is None:
+        file_path = _resolve_config_path()
 
-    Parameters
-    ----------
-    dict_path : str or list of strings
-        Full path of the section to configure
-        (e.g., ["piezo", "position_read", "min_val"])
-    val :
-        New value.
-    file_path : Path object
-        Path of the config file (optional).
-
-    """
-    # Ensure path to entry is always a string:
     if type(dict_path) is str:
         dict_path = [dict_path]
 
-    # Read and set:
-    conf = read_config(file_path=file_path)
+    conf = toml.load(file_path)
     set_nested(conf, dict_path, val)
 
-    # Write:
     with open(file_path, "w") as f:
         toml.dump(conf, f)
 
@@ -149,31 +158,36 @@ def write_config_value(dict_path, val, file_path=CONFIG_PATH):
 @click.option(
     "-p",
     "--file_path",
-    default=CONFIG_PATH,
+    default=None,
     help="Path to the config file (optional)",
 )
-def cli_modify_config(command, name=None, val=None, file_path=CONFIG_PATH):
-    file_path = Path(file_path)
+def cli_modify_config(command, name=None, val=None, file_path=None):
+    if file_path is not None:
+        set_config_path(Path(file_path))
+
+    resolved_path = _resolve_config_path()
+
     if command == "edit":
-        cli_edit_config(name, val, file_path)
-
+        cli_edit_config(name, val, resolved_path)
     elif command == "show":
-        click.echo(_print_config(file_path=file_path))
+        click.echo(_print_config(file_path=resolved_path))
 
 
-def cli_edit_config(name=None, val=None, file_path=CONFIG_PATH):
+def cli_edit_config(name=None, val=None, file_path=None):
+    if file_path is None:
+        file_path = _resolve_config_path()
+
     conf = read_config(file_path=file_path)
 
-    # Cast the type of the previous variable
-    # (to avoid overwriting values with strings)
     dict_path = name.split(".")
     old_val = get_nested(conf, dict_path)
-    val = type(old_val)(val)  # Convert to keep the same type
+    val = type(old_val)(val)
 
     write_config_value(dict_path, val, file_path)
 
 
-def _print_config(file_path=CONFIG_PATH):
-    """Return configuration string for printing."""
+def _print_config(file_path=None):
+    if file_path is None:
+        file_path = _resolve_config_path()
     config = read_config(file_path=file_path)
     return toml.dumps(config)

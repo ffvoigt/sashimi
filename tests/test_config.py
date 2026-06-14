@@ -9,7 +9,7 @@ from click.testing import CliRunner
 @pytest.fixture
 def conf_path():
     temp_dir = Path(tempfile.mkdtemp())
-    conf_path = temp_dir / config.CONFIG_FILENAME
+    conf_path = temp_dir / "test_config.toml"
     config.write_default_config(conf_path)
 
     yield conf_path
@@ -44,3 +44,18 @@ def test_config_cli_edit(conf_path):
     )
     conf = config.read_config(conf_path)
     assert conf["z_board"]["read"]["min_val"] == 7
+
+
+def test_resolve_single_config():
+    config._config_path = None
+    resolved = config._resolve_config_path()
+    assert resolved.exists()
+    assert resolved.suffix == ".toml"
+    config._config_path = None
+
+
+def test_set_config_path(conf_path):
+    config._config_path = None
+    config.set_config_path(conf_path)
+    assert config._resolve_config_path() == conf_path
+    config._config_path = None

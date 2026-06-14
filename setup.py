@@ -16,6 +16,7 @@ setup(
     author="Vilim Stih @portugueslab",
     author_email="vilim@neuro.mpg.de",
     packages=find_packages(),
+    package_data={"sashimi": ["config/*.toml", "icons/*"]},
     install_requires=requirements,
     extras_require=dict(dev=requirements_dev),
     python_requires=">=3.8",
