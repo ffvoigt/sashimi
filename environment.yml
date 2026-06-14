@@ -1,16 +1,10 @@
-name: sashimi
+name: sashimi39
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.9
   - pip
   - pyqt
   - numpy
   - scipy
-  - numba >= 0.55.1
-  - pandas
-  - pytables
-  - ffmpeg
-  - scikit-image
-  - h5py
-  - vispy
+
