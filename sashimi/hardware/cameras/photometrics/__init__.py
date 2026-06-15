@@ -1,0 +1,1 @@
+from sashimi.hardware.cameras.photometrics.interface import PhotometricsCamera
