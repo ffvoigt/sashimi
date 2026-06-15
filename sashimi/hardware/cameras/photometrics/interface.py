@@ -42,13 +42,16 @@ class PhotometricsCamera(AbstractCamera):
 
         photometrics_conf = conf["camera"].get("photometrics", {})
 
-        if "speed_table_index" in photometrics_conf:
-            self._cam.speed_table_index = photometrics_conf["speed_table_index"]
+
         if "readout_port" in photometrics_conf:
             self._cam.set_param(
                 param_id=const.PARAM_READOUT_PORT,
                 value=photometrics_conf["readout_port"],
             )
+
+        if "speed_table_index" in photometrics_conf:
+            self._cam.speed_table_index = photometrics_conf["speed_table_index"]
+
         if "gain_index" in photometrics_conf:
             self._cam.set_param(
                 const.PARAM_GAIN_INDEX,
@@ -56,6 +59,7 @@ class PhotometricsCamera(AbstractCamera):
             )
         if "exp_out_mode" in photometrics_conf:
             self._cam.exp_out_mode = photometrics_conf["exp_out_mode"]
+
         if "scan_mode" in photometrics_conf:
             self._cam.set_param(
                 param_id=const.PARAM_SCAN_MODE,
@@ -107,7 +111,8 @@ class PhotometricsCamera(AbstractCamera):
     @roi.setter
     def roi(self, exp_val: tuple):
         self._roi = exp_val
-        hpos, vpos, hsize, vsize = exp_val
+        vpos, hpos, vsize, hsize = exp_val
+        self._cam.reset_rois()
         self._cam.set_roi(int(hpos), int(vpos), int(hsize), int(vsize))
 
     @property
