@@ -1,7 +1,7 @@
 from sashimi.hardware.cameras.interface import AbstractCamera
 import numpy as np
 import time
-from skimage.measure import block_reduce
+# from skimage.measure import block_reduce
 from scipy.ndimage.filters import gaussian_filter
 
 
@@ -13,11 +13,12 @@ class MockCamera(AbstractCamera):
         self._roi = (0, 0, self._sensor_resolution[0], self._sensor_resolution[1])
         self._frame_rate = 1 / self._exposure_time
         self._binning = 1
-        self.full_mock_image = gaussian_filter(
-            np.random.randint(0, 65534, size=self._sensor_resolution, dtype=np.uint16),
-            5,
-        ).astype(np.uint16)
-        self.current_mock_image = self.full_mock_image
+
+        self.line = np.linspace(0,6*np.pi,self._sensor_resolution[0])
+        self.line = 400*np.sin(self.line)+1200
+        self.count = 0
+        self.current_mock_image = np.array([np.roll(self.line, 1*i + self.count) for i in range(0, self._sensor_resolution[1])], dtype='uint16')
+
         self.previous_frame_time = None
         self.current_time = time.time_ns()
         self.elapsed = 0
@@ -62,9 +63,9 @@ class MockCamera(AbstractCamera):
         pass
 
     def prepare_mock_image(self):
-        self.current_mock_image = block_reduce(
-            self.full_mock_image, (self._binning, self._binning), func=np.max
-        )
+        self.current_mock_image = np.array([np.roll(self.line, 1*i + self.count) for i in range(0, self._sensor_resolution[1])], dtype='uint16')
+        self.count += 5
+
         self.current_mock_image = self.current_mock_image[
             self._roi[0] : (self._roi[0] + self._roi[2]),
             self._roi[1] : (self._roi[1] + self._roi[3]),
@@ -78,8 +79,10 @@ class MockCamera(AbstractCamera):
             time.sleep(0.0001)
             self.elapsed = (self.current_time - self.previous_frame_time) * 1e-9
             if self.elapsed >= self._exposure_time * 1e-3:
-                multiplier = np.random.randint(1, 5, 1)
-                frames.append(np.uint16(self.current_mock_image * multiplier))
+                num_frames = int(self.elapsed / (self._exposure_time * 1e-3))
+                for i in range(num_frames):
+                    self.prepare_mock_image()
+                    frames.append(np.uint16(self.current_mock_image))
                 self.previous_frame_time = self.current_time
         else:
             self.previous_frame_time = self.current_time
