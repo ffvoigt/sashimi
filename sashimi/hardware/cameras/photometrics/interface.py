@@ -42,6 +42,15 @@ class PhotometricsCamera(AbstractCamera):
 
         photometrics_conf = conf["camera"].get("photometrics", {})
 
+        self._cam.exp_res = 0
+
+        self._exposure_time_ms = conf["camera"]["default_exposure"]
+        self._binning = conf["camera"]["default_binning"]
+        self._trigger_mode = TriggerMode.FREE
+        self._roi = (0, 0) + tuple(max_sensor_resolution)
+        self._is_acquiring = False
+
+        self._cam.exp_time = int(self._exposure_time_ms)
 
         if "readout_port" in photometrics_conf:
             self._cam.set_param(
@@ -76,15 +85,7 @@ class PhotometricsCamera(AbstractCamera):
                 value=photometrics_conf["scan_line_delay"],
             )
 
-        self._cam.exp_res = 0
 
-        self._exposure_time_ms = conf["camera"]["default_exposure"]
-        self._binning = conf["camera"]["default_binning"]
-        self._trigger_mode = TriggerMode.FREE
-        self._roi = (0, 0) + tuple(max_sensor_resolution)
-        self._is_acquiring = False
-
-        self._cam.exp_time = int(self._exposure_time_ms)
 
     @property
     def exposure_time(self):
@@ -121,11 +122,11 @@ class PhotometricsCamera(AbstractCamera):
 
     @trigger_mode.setter
     def trigger_mode(self, exp_val: TriggerMode):
-        self._trigger_mode = exp_val
-        if exp_val == TriggerMode.FREE:
+        if str(exp_val) == str(TriggerMode.FREE):
             self._cam.exp_mode = "Internal Trigger"
-        elif exp_val == TriggerMode.EXTERNAL_TRIGGER:
-            self._cam.exp_mode = "Edge Trigger"
+        elif str(exp_val) == str(TriggerMode.EXTERNAL_TRIGGER):
+              self._cam.exp_mode = "Edge Trigger"
+        self._trigger_mode = exp_val
 
     @property
     def frame_rate(self):
