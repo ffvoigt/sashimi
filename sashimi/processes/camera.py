@@ -102,7 +102,7 @@ class CameraProcess(LoggingProcess):
         wait_event: LoggedEvent,
         exp_trigger_event: LoggedEvent,
         camera_id=0,
-        max_queue_size=1200,
+        max_queue_size=3000,
         n_fps_frames=20,
     ):
         super().__init__(name="camera")
@@ -187,8 +187,8 @@ class CameraProcess(LoggingProcess):
                     # saving can start
                     if self.was_waiting and not is_waiting:
                         self.experiment_trigger_event.set()
-                        # TODO do not crash here if queue is full
-                    self.image_queue.put(frame)
+                    if not self.image_queue.try_put(frame):
+                        self.logger.log_message("WARNING: image_queue full, frame dropped")
                     self.was_waiting = is_waiting
                     self.update_framerate()
 
