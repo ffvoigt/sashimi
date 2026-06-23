@@ -111,8 +111,8 @@ class PhotometricsCamera(AbstractCamera):
 
     @roi.setter
     def roi(self, exp_val: tuple):
-        self._roi = exp_val
-        vpos, hpos, vsize, hsize = exp_val
+        self._roi = [(i * self._binning // 4) * 4 for i in exp_val]
+        vpos, hpos, vsize, hsize = self._roi
         self._cam.reset_rois()
         self._cam.set_roi(int(hpos), int(vpos), int(hsize), int(vsize))
 
