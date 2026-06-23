@@ -16,6 +16,8 @@ from sashimi.gui.status_bar import StatusBarWidget
 from sashimi.gui.top_bar import TopWidget
 from sashimi.state import State
 
+from sashimi.config import read_config
+conf = read_config()
 
 class DockedWidget(QDockWidget):
     def __init__(self, widget=None, layout=None, title=""):
@@ -70,16 +72,23 @@ class MainWindow(QMainWindow):
             DockedWidget(widget=self.wid_laser, title="Light source"),
         )
         '''
+        try:
+            if conf["shutter"]:
+                self.addDockWidget(
+                    Qt.RightDockWidgetArea,
+                    DockedWidget(widget=self.wid_shutter, title="Shutter"),
+                )
+        except:
+            pass
 
-        self.addDockWidget(
-            Qt.RightDockWidgetArea,
-            DockedWidget(widget=self.wid_shutter, title="Shutter"),
-        )
-
-        self.addDockWidget(
-            Qt.RightDockWidgetArea,
-            DockedWidget(widget=self.wid_filterwheel, title="Filterwheel"),
-        )
+        try:
+            if conf["filterwheel"]:
+                self.addDockWidget(
+                    Qt.RightDockWidgetArea,
+                    DockedWidget(widget=self.wid_filterwheel, title="Filterwheel"),
+                )
+        except:
+            pass
 
         self.addDockWidget(
             Qt.RightDockWidgetArea,
