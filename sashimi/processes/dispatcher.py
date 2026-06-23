@@ -1,5 +1,5 @@
 from multiprocessing import Queue, Event
-from queue import Empty
+from queue import Empty, Full
 from arrayqueues.shared_arrays import ArrayQueue
 from sashimi.utilities import neg_dif
 from sashimi.processes.logging import LoggingProcess
@@ -34,7 +34,7 @@ class VolumeDispatcher(LoggingProcess):
         noise_subtraction_on: Event,
         camera_queue: ArrayQueue,
         saver_queue: ArrayQueue,
-        max_queue_size=1200,
+        max_queue_size=2400,
     ):
         super().__init__(name="dispatcher")
         self.stop_event = stop_event
@@ -81,12 +81,12 @@ class VolumeDispatcher(LoggingProcess):
             self.i_plane = 0
 
     def fill_queues(self):
-        if self.viewer_queue.queue.qsize() < 3:
-            self.viewer_queue.put(self.volume_buffer)
-        else:
-            pass  # volume has been dropped from the viewer
+        self.viewer_queue.try_put(self.volume_buffer)
         if self.saving_signal.is_set():
-            self.saver_queue.put(self.volume_buffer)
+            try:
+                self.saver_queue.put(self.volume_buffer)
+            except Full:
+                self.logger.log_message("CRITICAL: saver queue full, volume dropped")
 
     def get_frame(self):
         if self.wait_signal.is_set():
