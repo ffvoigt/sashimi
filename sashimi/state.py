@@ -155,11 +155,14 @@ class ShutterSettings(ParametrizedQt):
         self.name = "general/shutter"
 
 class FilterWheelSettings(ParametrizedQt):
-    def __init__(self):
-        super().__init__()
-        self.name = "general/filterwheel"
-        self.filter = Param(conf["filterwheel"]["default_filter"], conf["filterwheel"]["filter_options"])
-
+        def __init__(self):
+            super().__init__()
+            self.name = "general/filterwheel"
+            try:
+                if conf["filterwheel"]:
+                    self.filter = Param(conf["filterwheel"]["default_filter"], conf["filterwheel"]["filter_options"])
+            except:
+                pass
 
 def convert_planar_params(planar: PlanarScanningSettings):
     return PlanarScanning(
@@ -372,19 +375,27 @@ class State:
                 port=conf["light_source"]["port"]
             )
 
-        if self.conf["scopeless"]:
-            self.shutter = shutter_class_dict["mock"]()
-        else:
-            self.shutter = shutter_class_dict[conf["shutter"]["name"]](
-                port=conf["shutter"]["port"]
-            )
+        try:
+            if conf["shutter"]:
+                if self.conf["scopeless"]:
+                    self.shutter = shutter_class_dict["mock"]()
+                else:
+                    self.shutter = shutter_class_dict[conf["shutter"]["name"]](
+                        port=conf["shutter"]["port"]
+                    )
+        except:
+            pass
 
-        if self.conf["scopeless"]:
-            self.filterwheel = filterwheel_class_dict["mock"]()
-        else:
-            self.filterwheel = filterwheel_class_dict[conf["filterwheel"]["name"]](
-                port=conf["filterwheel"]["port"]
-            )
+        try:
+            if conf["filterwheel"]:
+                if self.conf["scopeless"]:
+                    self.filterwheel = filterwheel_class_dict["mock"]()
+                else:
+                    self.filterwheel = filterwheel_class_dict[conf["filterwheel"]["name"]](
+                        port=conf["filterwheel"]["port"]
+                    )
+        except:
+            pass
 
         self.camera = CameraProcess(
             stop_event=self.stop_event,
