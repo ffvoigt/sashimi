@@ -7,11 +7,16 @@ from PyQt5.QtWidgets import (
     QLabel,
     QHBoxLayout,
     QCheckBox,
+    QFileDialog,
 )
+
 from lightparam.gui import ParameterGui
 from sashimi.state import Calibration
 from lightparam.param_qt import ParametrizedQt
 from lightparam import Param
+from pathlib import Path
+
+
 
 
 class NoiseSubtractionSettings(ParametrizedQt):
@@ -27,15 +32,28 @@ class CalibrationWidget(QWidget):
         self.state = state
         self.calibration_state = calibration_state
         self.timer = timer
-        self.wid_settings = ParameterGui(self.calibration_state.z_settings)
+        self.wid_settings = ParameterGui(self.calibration_state.z_settings)\
+
         self.btn_add_points = QPushButton("+")
         self.btn_add_points.clicked.connect(
             self.calibration_state.add_calibration_point
         )
+
         self.btn_rm_points = QPushButton("-")
         self.btn_rm_points.clicked.connect(
             self.calibration_state.remove_calibration_point
         )
+
+        self.btn_save_calibration = QPushButton("Save calibration")
+        self.btn_save_calibration.clicked.connect(
+            self.save_calibration
+        )
+
+        self.btn_load_calibration = QPushButton("Load calibration")
+        self.btn_load_calibration.clicked.connect(
+            self.load_calibration
+        )
+
         self.lbl_calibration = QLabel("")
         self.chk_noise_subtraction = QCheckBox()
         self.chk_noise_subtraction.setText("Enable noise subtraction")
@@ -51,6 +69,8 @@ class CalibrationWidget(QWidget):
         self.main_layout.addWidget(self.wid_settings)
         self.main_layout.addWidget(self.btn_add_points)
         self.main_layout.addWidget(self.btn_rm_points)
+        self.main_layout.addWidget(self.btn_load_calibration)
+        self.main_layout.addWidget(self.btn_save_calibration)
         self.main_layout.addWidget(self.lbl_calibration)
         self.main_layout.addLayout(self.noise_layout)
 
@@ -119,3 +139,23 @@ class CalibrationWidget(QWidget):
             n_images=self.param_n_noise_subtraction.average_n_frames
         )
         self.show_dialog_box(finished=True)
+
+    def save_calibration(self):
+        ''' Get the current path - parent.parent because we're in the gui folder '''
+        current_config_path = str(Path(__file__).resolve().parent.parent / "config" / "calibration")
+        path , _ = QFileDialog.getSaveFileName(self, 'Save Sashimi Calibration file',
+                                                        current_config_path,  filter='TOML file (*.toml)')
+        if path:
+            self.calibration_state.save_calibration(path)
+        else:
+            print(f'Save Sashimi Calibration File cancelled')
+
+    def load_calibration(self):
+        ''' Get the current path - parent.parent because we're in the gui folder '''
+        current_config_path = str(Path(__file__).resolve().parent.parent / "config" / "calibration")
+        path , _ = QFileDialog.getOpenFileName(self, 'Open Sashimi Calibration file',
+                                                         current_config_path,  filter='TOML file (*.toml)')
+        if path:
+            self.calibration_state.load_calibration(path)
+        else:
+            print(f'Opening Sashimi Calibration File cancelled')
