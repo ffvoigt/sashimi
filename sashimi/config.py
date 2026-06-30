@@ -14,6 +14,7 @@ TEMPLATE_CONF_DICT = {
     "scanning": "mock",
     "scopeless": True,
     "sample_rate": 40000,
+    "illumination_paths":2,
     "voxel_size": {
         "x": 0.3,
         "y": 0.3,
