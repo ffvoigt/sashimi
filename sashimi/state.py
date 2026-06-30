@@ -40,6 +40,7 @@ from enum import Enum
 from sashimi.config import read_config
 import time
 from sashimi.utilities import clean_json, get_last_parameters
+import toml
 
 conf = read_config()
 
@@ -254,6 +255,23 @@ class Calibration(ParametrizedQt):
         ]
 
         return True
+
+    def save_calibration(self, path):
+        try:
+            with open(path, "w") as f:
+                toml.dump({"calibration_points": self.calibrations_points}, f)
+        except:
+            print("Save Sashimi Calibration file failed")
+
+    def load_calibration(self, path):
+        try:
+            data = toml.load(path)
+            self.calibrations_points = [tuple(row) for row in data["calibration_points"]]
+            self.calculate_calibration()
+        except:
+            print("Load Sashimi Calibration file failed")
+
+
 
 
 def get_voxel_size(
