@@ -39,6 +39,9 @@ TEMPLATE_CONF_DICT = {
     },
     "piezo": {
         "scale": 1 / 40,
+        "z_min":0,
+        "z_max":250,
+        "z_default":125
     },
     "email": {"user": "foo", "password": "foo"},
     "xy_board": {
