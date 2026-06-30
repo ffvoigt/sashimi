@@ -32,7 +32,7 @@ TEMPLATE_CONF_DICT = {
         },
         "write": {
             "channel": "Dev1/ao0:3",
-            "min_val": -5,
+            "min_val": -10,
             "max_val": 10,
         },
         "sync": {"channel": "/Dev1/ao/StartTrigger"},
@@ -47,8 +47,16 @@ TEMPLATE_CONF_DICT = {
     "xy_board": {
         "write": {
             "channel": "Dev2/ao0:1",
-            "min_val": -5,
+            "min_val": -10,
             "max_val": 10,
+            "display_range_min": -3,
+            "display_range_max": 3,
+            "lateral_min": -1,
+            "lateral_max": 1,
+            "lateral_freq": 500,
+            "frontal_min": -1,
+            "frontal_max": 1,
+            "frontal_freq": 500,
         }
     },
     "camera": {

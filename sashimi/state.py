@@ -91,10 +91,18 @@ class PlanarScanningSettings(ParametrizedQt):
     def __init__(self):
         super().__init__()
         self.name = "scanning/planar_scanning"
-        self.lateral_range = Param((0, 0.5), (-3, 3))
-        self.lateral_frequency = Param(500.0, (10, 1000), unit="Hz")
-        self.frontal_range = Param((0, 0.5), (-3, 3))
-        self.frontal_frequency = Param(500.0, (10, 1000), unit="Hz")
+        self.display_range_min = conf["xy_board"]["write"]["display_range_min"]
+        self.display_range_max = conf["xy_board"]["write"]["display_range_max"]
+        self.lateral_min = conf["xy_board"]["write"]["lateral_min"]
+        self.lateral_max = conf["xy_board"]["write"]["lateral_max"]
+        self.lateral_freq = conf["xy_board"]["write"]["lateral_freq"]
+        self.frontal_min = conf["xy_board"]["write"]["frontal_min"]
+        self.frontal_max = conf["xy_board"]["write"]["frontal_max"]
+        self.frontal_freq = conf["xy_board"]["write"]["frontal_freq"]
+        self.lateral_range = Param((self.lateral_min, self.lateral_max), (self.display_range_min, self.display_range_max))
+        self.lateral_frequency = Param(self.lateral_freq, (10, 1000), unit="Hz")
+        self.frontal_range = Param((self.frontal_min, self.frontal_max), (self.display_range_min, self.display_range_max))
+        self.frontal_frequency = Param(self.frontal_freq, (10, 1000), unit="Hz")
 
 
 class CalibrationZSettings(ParametrizedQt):
