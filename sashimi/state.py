@@ -173,14 +173,31 @@ class ShutterSettings(ParametrizedQt):
         self.name = "general/shutter"
 
 class FilterWheelSettings(ParametrizedQt):
-        def __init__(self):
-            super().__init__()
-            self.name = "general/filterwheel"
-            try:
-                if conf["filterwheel"]:
-                    self.filter = Param(conf["filterwheel"]["default_filter"], conf["filterwheel"]["filter_options"])
-            except:
-                pass
+    def __init__(self):
+        super().__init__()
+        self.name = "general/filterwheel"
+        try:
+            if conf["filterwheel"]:
+                self.filter = Param(conf["filterwheel"]["default_filter"], conf["filterwheel"]["filter_options"])
+        except:
+            pass
+
+class AdditionalOutputSettings(ParametrizedQt):
+    '''
+    These are settings for a additional waveform outputs that are associated with another NI card
+    '''
+    def __init__(self):
+        super().__init__()
+        self.name = "scanning/additional_output"
+        self.Laser_405nm_enable = Param(False)
+        self.Intensity_405nm = Param(0,(0, 100), unit="%", gui="slider")
+        self.Laser_488nm_enable = Param(False)
+        self.Intensity_488nm = Param(0,(0, 100), unit="%", gui="slider")
+        self.Laser_561nm_enable = Param(False)
+        self.Intensity_561nm = Param(0,(0, 100), unit="%", gui="slider")
+        self.Laser_640nm_enable = Param(False)
+        self.Intensity_640nm = Param(0,(0, 100), unit="%", gui="slider")
+        self.ETL_output = Param(2.5,(0, 5), unit="V", gui="slider")
 
 def convert_planar_params(planar: PlanarScanningSettings):
     return PlanarScanning(
@@ -482,6 +499,7 @@ class State:
 
         self.shutter_settings = ShutterSettings()
         self.filterwheel_settings = FilterWheelSettings()
+        self.additional_output_settings = AdditionalOutputSettings()
 
         self.save_status: Optional[SavingStatus] = None
 

@@ -31,6 +31,15 @@ class SinglePlaneScanningWidget(QWidget):
         self.layout().addWidget(self.wid_singleplane)
 
 
+class AdditionalOutputWidget(QWidget):
+    def __init__(self, state):
+        super().__init__()
+        self.state = state
+        self.setLayout(QVBoxLayout())
+        self.wid_additional_output = ParameterGui(state.additional_output_settings)
+        self.layout().addWidget(self.wid_additional_output)
+
+
 class VolumeScanningWidget(QWidget):
     def __init__(self, state, timer):
         super().__init__()
@@ -39,7 +48,7 @@ class VolumeScanningWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.wid_volume = ParameterGui(state.volume_setting)
         self.chk_pause = QCheckBox("Pause after experiment")
-    
+
         self.delta_z_layout = QHBoxLayout()
         self.delta_z_label = QLabel("Δz (µm)")
         self.delta_z_display = QLineEdit()
