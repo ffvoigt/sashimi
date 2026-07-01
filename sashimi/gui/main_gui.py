@@ -9,6 +9,7 @@ from sashimi.gui.scanning_gui import (
 from sashimi.gui.light_source_gui import LightSourceWidget
 from sashimi.gui.shutter_gui import ShutterWidget
 from sashimi.gui.filterwheel_gui import FilterWheelWidget
+from sashimi.gui.additional_output_gui import AdditionalOutputWidget
 from sashimi.gui.save_settings_gui import SavingSettingsWidget
 from sashimi.gui.camera_gui import ViewingWidget, CameraSettingsWidget
 from sashimi.gui.save_gui import SaveWidget
@@ -47,6 +48,7 @@ class MainWindow(QMainWindow):
         #self.wid_laser = LightSourceWidget(st, self.timer)
         self.wid_shutter = ShutterWidget(st, self.timer)
         self.wid_filterwheel = FilterWheelWidget(st)
+        self.wid_additional_output = AdditionalOutputWidget(st)
         self.wid_scan = PlanarScanningWidget(st)
         self.wid_camera = CameraSettingsWidget(st, self.wid_display, self.timer)
         self.wid_status_bar = StatusBarWidget(st, self.timer)
@@ -89,6 +91,12 @@ class MainWindow(QMainWindow):
                 )
         except:
             pass
+
+        self.addDockWidget(
+            Qt.RightDockWidgetArea,
+            DockedWidget(widget=self.wid_additional_output, title="Additional control outputs"),
+        )
+
 
         self.addDockWidget(
             Qt.RightDockWidgetArea,
