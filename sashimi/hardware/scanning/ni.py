@@ -30,7 +30,7 @@ class NIBoards(AbstractScanInterface):
     def __init__(self, *args, read_task, write_task_z, write_task_xy):
         super().__init__(*args)
         self.illumination_paths = self.conf["illumination_paths"]
-        print('Num Illumination Paths: ', self.illumination_paths)
+        # print('Num Illumination Paths: ', self.illumination_paths)
         self.read_task = read_task
         self.write_task_xy = write_task_xy
         self.write_task_z = write_task_z
