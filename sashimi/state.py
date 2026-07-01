@@ -7,6 +7,7 @@ from lightparam import Param, ParameterTree
 from sashimi.hardware.light_source import light_source_class_dict
 from sashimi.hardware.shutter import shutter_class_dict
 from sashimi.hardware.filterwheels import filterwheel_class_dict
+from sashimi.hardware.additional_output import additional_output_class_dict
 from typing import Union
 
 # from sashimi.hardware import light_source_class_dict
@@ -445,6 +446,18 @@ class State:
                 else:
                     self.filterwheel = filterwheel_class_dict[conf["filterwheel"]["name"]](
                         port=conf["filterwheel"]["port"]
+                    )
+        except:
+            pass
+
+        try:
+            if conf["additional_output"]:
+                if self.conf["scopeless"]:
+                    self.additional_output = additional_output_class_dict["mock"]()
+                else:
+                    self.additional_output = additional_output_class_dict[conf["additional_output"]["name"]](
+                        ao_channels=conf["additional_output"]["ao_channels"],
+                        do_channels=conf["additional_output"]["do_channels"],
                     )
         except:
             pass

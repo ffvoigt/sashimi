@@ -5,11 +5,11 @@ from sashimi.gui.scanning_gui import (
     PlanarScanningWidget,
     VolumeScanningWidget,
     SinglePlaneScanningWidget,
-    AdditionalOutputWidget,
 )
 from sashimi.gui.light_source_gui import LightSourceWidget
 from sashimi.gui.shutter_gui import ShutterWidget
 from sashimi.gui.filterwheel_gui import FilterWheelWidget
+from sashimi.gui.additional_output_gui import AdditionalOutputWidget
 from sashimi.gui.save_settings_gui import SavingSettingsWidget
 from sashimi.gui.camera_gui import ViewingWidget, CameraSettingsWidget
 from sashimi.gui.save_gui import SaveWidget
