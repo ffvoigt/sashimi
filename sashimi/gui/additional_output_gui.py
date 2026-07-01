@@ -19,7 +19,17 @@ class AdditionalOutputWidget(QWidget):
         self.state.additional_output_settings.sig_param_changed.connect(self.param_changed)
 
     def param_changed(self, change_dict):
-        print("something changed: ", str(change_dict))
+        '''
+        Not ideal as the channel assignment is hard-coded
+        ... and as a UI Widget contains that kind of information which is not exactly
+        separation of responsibilities
+        However, it seems to be Sashimi standard to have Widgets directly interact with the state
+        object.
+
+        Note that also the conversion of 100% laser intensity to 5V is hardcoded
+        '''
+
+        # print("something changed: ", str(change_dict))
         (ui_key,) = change_dict.keys()
         (new_value,) = change_dict.values()
 
