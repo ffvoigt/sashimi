@@ -35,7 +35,7 @@ class AdditionalOutputWidget(QWidget):
 
         if isinstance(new_value,bool):
             ''' Digital output tree '''
-            print("digital output of ", ui_key , " changed to: ", new_value)
+            # print("digital output of ", ui_key , " changed to: ", new_value)
             if ui_key == "Laser_405nm_enable":
                 self.state.additional_output.set_digital_out(self.do_channels + "0", new_value)
             elif ui_key == "Laser_488nm_enable":
