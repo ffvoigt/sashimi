@@ -10,8 +10,13 @@ class NIAdditionalOutput(AbstractAdditionalOutput):
         super().__init__(ao_channels, do_channels)
 
     def set_analog_out(self, channel, value):
-        """Sets analog out"""
-        pass
+        try:
+            with nidaqmx.Task() as task:
+                task.ao_channels.add_ao_voltage_chan(channel)
+                task.write(value)
+                print("Voltage written")
+        except:
+            print("NI additional analog output write failed")
 
     def set_digital_out(self, channel, value):
         """Sets shutter"""
@@ -20,7 +25,7 @@ class NIAdditionalOutput(AbstractAdditionalOutput):
                 task.do_channels.add_do_chan(channel, line_grouping=LineGrouping.CHAN_PER_LINE)
                 task.write([value], auto_start=True)
         except:
-            warn("NI additional output didn't work", ShutterWarning)
+            print("NI additional digital output write failed")
 
     def close(self):
         pass

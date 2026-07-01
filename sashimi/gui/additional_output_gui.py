@@ -13,8 +13,38 @@ class AdditionalOutputWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.wid_additional_output = ParameterGui(state.additional_output_settings)
         self.layout().addWidget(self.wid_additional_output)
+        self.ao_channels = self.state.additional_output.ao_channels
+        self.do_channels = self.state.additional_output.do_channels
 
         self.state.additional_output_settings.sig_param_changed.connect(self.param_changed)
 
-    def param_changed(self, value):
-        print("something changed: ", str(value))
+    def param_changed(self, change_dict):
+        print("something changed: ", str(change_dict))
+        (ui_key,) = change_dict.keys()
+        (new_value,) = change_dict.values()
+
+        if isinstance(new_value,bool):
+            ''' Digital output tree '''
+            print("digital output of ", ui_key , " changed to: ", new_value)
+            if ui_key == "Laser_405nm_enable":
+                self.state.additional_output.set_digital_out(self.do_channels + "0", new_value)
+            elif ui_key == "Laser_488nm_enable":
+                self.state.additional_output.set_digital_out(self.do_channels + "1", new_value)
+            elif ui_key == "Laser_561nm_enable":
+                self.state.additional_output.set_digital_out(self.do_channels + "2", new_value)
+            elif ui_key == "Laser_640nm_enable":
+                self.state.additional_output.set_digital_out(self.do_channels + "3", new_value)
+        else:
+            ''' Analog output tree '''
+            new_value = new_value/20 # 100% equals 5V
+
+            if ui_key == "Intensity_405nm":
+                self.state.additional_output.set_analog_out(self.ao_channels + "0", new_value)
+            elif ui_key == "Intensity_488nm":
+                print("setting 488 intensity")
+                print(self.ao_channels + "1")
+                self.state.additional_output.set_analog_out(self.ao_channels + "1", new_value)
+            elif ui_key == "Intensity_561nm":
+                self.state.additional_output.set_analog_out(self.ao_channels + "2", new_value)
+            elif ui_key == "Intensity_640nm":
+                self.state.additional_output.set_analog_out(self.ao_channels + "3", new_value)
