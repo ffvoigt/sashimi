@@ -19,13 +19,23 @@ class AdditionalOutputWidget(QWidget):
         self.state.additional_output_settings.sig_param_changed.connect(self.param_changed)
 
     def param_changed(self, change_dict):
-        print("something changed: ", str(change_dict))
+        '''
+        Not ideal as the channel assignment is hard-coded
+        ... and as a UI Widget contains that kind of information which is not exactly
+        separation of responsibilities
+        However, it seems to be Sashimi standard to have Widgets directly interact with the state
+        object.
+
+        Note that also the conversion of 100% laser intensity to 5V is hardcoded
+        '''
+
+        # print("something changed: ", str(change_dict))
         (ui_key,) = change_dict.keys()
         (new_value,) = change_dict.values()
 
         if isinstance(new_value,bool):
             ''' Digital output tree '''
-            print("digital output of ", ui_key , " changed to: ", new_value)
+            # print("digital output of ", ui_key , " changed to: ", new_value)
             if ui_key == "Laser_405nm_enable":
                 self.state.additional_output.set_digital_out(self.do_channels + "0", new_value)
             elif ui_key == "Laser_488nm_enable":
