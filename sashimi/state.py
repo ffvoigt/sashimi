@@ -306,7 +306,12 @@ def get_voxel_size(
             scanning_settings.piezo_scan_range[1]
             - scanning_settings.piezo_scan_range[0]
         )
-        inter_plane = scan_length / scanning_settings.n_planes
+        effective_planes = (
+            scanning_settings.n_planes
+            - scanning_settings.n_skip_start
+            - scanning_settings.n_skip_end
+        )
+        inter_plane = scan_length / max(1, effective_planes)
 
     return (
         inter_plane,
