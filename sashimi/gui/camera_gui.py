@@ -254,7 +254,9 @@ class ViewingWidget(QWidget):
         if current_image.shape[0] == 1 and self.image_shape[0] != 1:
             self.viewer.dims.reset()
         self.frame_layer.data = current_image
-        # self.frame_layer.scale = [self.voxel_size[0] / self.voxel_size[1], 1.0, 1.0]
+        if self.ndisplay_button.isChecked():
+            self.frame_layer.scale = [self.voxel_size[0] / self.voxel_size[1], 1.0, 1.0]
+            self.drift_layer.scale = [self.voxel_size[0] / self.voxel_size[1], 1.0, 1.0]
 
         # If experiment is started/ended call the display drift function
         if self.is_exp_started:
