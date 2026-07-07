@@ -55,13 +55,14 @@ class WaveformWidget(QWidget):
         ]
 
         # The last region is overlaid and marks the current plane:
-        current_pulse = self.pulse_times[self.state.current_plane]
-        self.pulse_regions.append(
-            self._create_hspan(
-                (current_pulse, current_pulse + self.camera_exposure_s),
-                color_current_plane,
+        if len(self.pulse_times) > 0 and 0 <= self.state.current_plane < len(self.pulse_times):
+            current_pulse = self.pulse_times[self.state.current_plane]
+            self.pulse_regions.append(
+                self._create_hspan(
+                    (current_pulse, current_pulse + self.camera_exposure_s),
+                    color_current_plane,
+                )
             )
-        )
         for r in self.pulse_regions:
             self.plot_widget.addItem(r)
 
