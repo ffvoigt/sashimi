@@ -6,13 +6,14 @@ from typing import Tuple, Union
 from arrayqueues.shared_arrays import ArrayQueue
 
 import numpy as np
+from scipy.signal import butter, sosfiltfilt
 
 from scopecuisine.rolling_buffer import FillingRollingBuffer, RollingBuffer
 
 from sashimi.config import read_config
 from sashimi.processes.logging import ConcurrenceLogger
 from sashimi.utilities import lcm, get_last_parameters
-from sashimi.waveforms import TriangleWaveform, SawtoothWaveform, set_impulses
+from sashimi.waveforms import TriangleWaveform, FilteredTriangleWaveform, SawtoothWaveform, FilteredSawtoothWaveform, set_impulses
 from sashimi.hardware.scanning.__init__ import AbstractScanInterface
 
 conf = read_config()
@@ -339,6 +340,10 @@ class VolumetricScanLoop(ScanLoop):
         )
         self.waveform_queue.put(self.recorded_signal.buffer)
 
+    def filter_waveform(self, filter_frequency, waveform):
+        sos = butter(5, filter_frequency, btype='low', fs=self.sample_rate, output='sos')
+        return sosfiltfilt(sos, waveform)
+
     def fill_arrays(self):
         super().fill_arrays()
         self.board.z_piezo = self.z_waveform.values(self.shifted_time)
@@ -354,6 +359,7 @@ class VolumetricScanLoop(ScanLoop):
                 self.board.z_lateral = calc_sync(
                     wave_part, self.parameters.z.lateral_sync
                 )
+                # self.board.z_lateral = self.filter_waveform(filter_frequency=3000, waveform=unfiltered_waveform)
             if (
                 -2 < calc_sync(min_wave, self.parameters.z.frontal_sync) < 2
                 and -2 < calc_sync(max_wave, self.parameters.z.frontal_sync) < 2
@@ -361,6 +367,7 @@ class VolumetricScanLoop(ScanLoop):
                 self.board.z_frontal = calc_sync(
                     wave_part, self.parameters.z.frontal_sync
                 )
+                # self.board.z_frontal = self.filter_waveform(filter_frequency=3000, waveform=unfiltered_waveform)
 
         camera_pulses = 0
         if self.camera_on:
