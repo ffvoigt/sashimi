@@ -46,15 +46,21 @@ class AdditionalOutputWidget(QWidget):
                 self.state.additional_output.set_digital_out(self.do_channels + "3", new_value)
         else:
             ''' Analog output tree '''
-            new_value = new_value/20 # 100% equals 5V
-
             if ui_key == "Intensity_405nm":
+                new_value = new_value/20 # 100% equals 5V
                 self.state.additional_output.set_analog_out(self.ao_channels + "0", new_value)
             elif ui_key == "Intensity_488nm":
-                print("setting 488 intensity")
-                print(self.ao_channels + "1")
+                #print("setting 488 intensity")
+                #print(self.ao_channels + "1")
+                new_value = new_value/20 # 100% equals 5V
                 self.state.additional_output.set_analog_out(self.ao_channels + "1", new_value)
             elif ui_key == "Intensity_561nm":
+                new_value = new_value/20 # 100% equals 5V
                 self.state.additional_output.set_analog_out(self.ao_channels + "2", new_value)
             elif ui_key == "Intensity_640nm":
+                new_value = new_value/20 # 100% equals 5V
                 self.state.additional_output.set_analog_out(self.ao_channels + "3", new_value)
+            elif ui_key == "ETL_output":
+                self.state.additional_output.set_analog_out(self.ao_channels + "4", new_value)
+            elif ui_key == "Resonant_output":
+                self.state.additional_output.set_analog_out(self.ao_channels + "5", new_value)

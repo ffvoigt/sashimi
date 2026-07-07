@@ -14,7 +14,7 @@ class NIAdditionalOutput(AbstractAdditionalOutput):
             with nidaqmx.Task() as task:
                 task.ao_channels.add_ao_voltage_chan(channel)
                 task.write(value)
-                print("Voltage written")
+                # print("Voltage written")
         except:
             print("NI additional analog output write failed")
 

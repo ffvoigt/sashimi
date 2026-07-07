@@ -199,6 +199,7 @@ class AdditionalOutputSettings(ParametrizedQt):
         self.Laser_640nm_enable = Param(False)
         self.Intensity_640nm = Param(0,(0, 100), unit="%", gui="slider")
         self.ETL_output = Param(2.5,(0, 5), unit="V", gui="slider")
+        self.Resonant_output = Param(0,(0, 5), unit="V", gui="slider")
 
 def convert_planar_params(planar: PlanarScanningSettings):
     return PlanarScanning(
