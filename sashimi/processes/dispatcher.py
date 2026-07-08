@@ -7,6 +7,9 @@ from sashimi.events import LoggedEvent
 import numpy as np
 
 from sashimi.utilities import get_last_parameters
+from sashimi.config import read_config
+
+conf = read_config()
 
 TIMEOUT_S = 0.001
 
@@ -34,7 +37,7 @@ class VolumeDispatcher(LoggingProcess):
         noise_subtraction_on: Event,
         camera_queue: ArrayQueue,
         saver_queue: ArrayQueue,
-        max_queue_size=2400,
+        max_queue_size=conf["max_queue_size"],
     ):
         super().__init__(name="dispatcher")
         self.stop_event = stop_event
@@ -73,7 +76,7 @@ class VolumeDispatcher(LoggingProcess):
             )
             self.first_volume = False
 
-        self.logger.log_message(f"received plane {self.i_plane}")
+        # self.logger.log_message(f"received plane {self.i_plane}")
         self.volume_buffer[self.i_plane, :, :] = current_frame
         self.i_plane += 1
         if self.i_plane == self.n_planes:
@@ -81,7 +84,9 @@ class VolumeDispatcher(LoggingProcess):
             self.i_plane = 0
 
     def fill_queues(self):
-        self.viewer_queue.try_put(self.volume_buffer)
+        viewer_success = self.viewer_queue.try_put(self.volume_buffer)
+        if viewer_success is False:
+            self.logger.log_message("CRITICAL: Try put into viewer queue failed")
         if self.saving_signal.is_set():
             try:
                 self.saver_queue.put(self.volume_buffer)

@@ -102,7 +102,7 @@ class CameraProcess(LoggingProcess):
         wait_event: LoggedEvent,
         exp_trigger_event: LoggedEvent,
         camera_id=0,
-        max_queue_size=3000,
+        max_queue_size=conf["max_queue_size"],
         n_fps_frames=20,
     ):
         super().__init__(name="camera")
@@ -179,9 +179,11 @@ class CameraProcess(LoggingProcess):
             # or we are in the waining period)
             if frames:
                 for frame in frames:
+                    '''
                     self.logger.log_message(
                         "received frame of shape " + str(frame.shape)
                     )
+                    '''
                     # this means this is the first frame received since
                     # the waiting period is over, the signal has to be sent that
                     # saving can start

@@ -306,7 +306,12 @@ def get_voxel_size(
             scanning_settings.piezo_scan_range[1]
             - scanning_settings.piezo_scan_range[0]
         )
-        inter_plane = scan_length / scanning_settings.n_planes
+        effective_planes = (
+            scanning_settings.n_planes
+            - scanning_settings.n_skip_start
+            - scanning_settings.n_skip_end
+        )
+        inter_plane = scan_length / max(1, effective_planes)
 
     return (
         inter_plane,
@@ -570,6 +575,7 @@ class State:
 
     def send_camera_settings(self):
         self.camera.image_queue.clear()
+        self.dispatcher.viewer_queue.clear()
         self.camera.parameter_queue.put(self.camera_params)
 
     def send_scan_settings(self, param_changed=None):
@@ -582,10 +588,11 @@ class State:
     @property
     def n_planes(self):
         if self.global_state == GlobalState.VOLUME_PREVIEW:
-            return (
+            return max(
+                1,
                 self.volume_setting.n_planes
                 - self.volume_setting.n_skip_start
-                - self.volume_setting.n_skip_end
+                - self.volume_setting.n_skip_end,
             )
         else:
             return 1
@@ -674,7 +681,7 @@ class State:
     def send_scansave_settings(self):
         # Make sure that current plane is updated if we changed number of planes
         if self.global_state == GlobalState.VOLUME_PREVIEW:
-            self.current_plane = min(self.current_plane, self.n_planes - 1)
+            self.current_plane = min(self.current_plane, max(0, self.n_planes - 1))
 
         self.scanner.parameter_queue.put(self.scan_params)
         self.external_comm.current_settings_queue.put(self.all_settings)
@@ -787,9 +794,8 @@ class State:
         self.noise_subtraction_active.clear()
 
     def get_volume(self):
-        # TODO consider get_last_parameters method
         try:
-            return self.dispatcher.viewer_queue.get(timeout=0.001)
+            return self.dispatcher.viewer_queue.get_last(timeout=0.001)
         except Empty:
             return None
 

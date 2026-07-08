@@ -1,5 +1,6 @@
 import numpy as np
 from numba import jit
+from scipy.signal import butter, sosfiltfilt
 
 
 class Waveform:
@@ -31,6 +32,18 @@ class SawtoothWaveform(Waveform):
         return (tf - np.floor(tf)) * (self.vmax - self.vmin) + self.vmin
 
 
+class FilteredSawtoothWaveform(SawtoothWaveform):
+    def __init__(self, *args, filter_frequency=1000, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filter_frequency = filter_frequency
+
+    def values(self, t):
+        raw = super().values(t)
+        sample_rate = 1.0 / (t[1] - t[0])
+        sos = butter(5, self.filter_frequency, btype='low', fs=sample_rate, output='sos')
+        return sosfiltfilt(sos, raw)
+
+
 class RecordedWaveform(Waveform):
     def __init__(self, *args, recording, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,6 +72,18 @@ class TriangleWaveform(Waveform):
             * (np.abs((tf - np.floor(tf + 1 / 2))) - 0.25)
             * 2
         )
+
+class FilteredTriangleWaveform(TriangleWaveform):
+    def __init__(self, *args, filter_frequency=1000, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filter_frequency = filter_frequency
+
+    def values(self, t):
+        raw = super().values(t)
+        sample_rate = 1.0 / (t[1] - t[0])
+        sos = butter(5, self.filter_frequency, btype='low', fs=sample_rate, output='sos')
+        return sosfiltfilt(sos, raw)
+
 
 # Default high is 5V
 @jit(nopython=True)
