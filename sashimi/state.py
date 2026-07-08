@@ -42,6 +42,7 @@ from sashimi.config import read_config
 import time
 from sashimi.utilities import clean_json, get_last_parameters
 import toml
+import re
 
 conf = read_config()
 
@@ -183,23 +184,64 @@ class FilterWheelSettings(ParametrizedQt):
         except:
             pass
 
+def parse_channel_string(channel_spec, channel_index=0):
+    """Resolve NI DAQmx range syntax, e.g. 'PXI6733_1/ao0:3' + index=2 → 'PXI6733_1/ao2'"""
+    match = re.match(r'^(.+?)(\d+):(\d+)$', channel_spec)
+    if match:
+        prefix, start, end = match.group(1), int(match.group(2)), int(match.group(3))
+        actual = start + channel_index
+        if actual > end:
+            raise ValueError(f"channel_index {channel_index} out of range {start}:{end}")
+        return f"{prefix}{actual}"
+    return channel_spec
+
+
 class AdditionalOutputSettings(ParametrizedQt):
-    '''
-    These are settings for a additional waveform outputs that are associated with another NI card
-    '''
-    def __init__(self):
+    def __init__(self, channel_configs=None, ao_min_val=0, ao_max_val=5):
         super().__init__()
         self.name = "scanning/additional_output"
-        self.Laser_405nm_enable = Param(False)
-        self.Intensity_405nm = Param(0,(0, 100), unit="%", gui="slider")
-        self.Laser_488nm_enable = Param(False)
-        self.Intensity_488nm = Param(0,(0, 100), unit="%", gui="slider")
-        self.Laser_561nm_enable = Param(False)
-        self.Intensity_561nm = Param(0,(0, 100), unit="%", gui="slider")
-        self.Laser_640nm_enable = Param(False)
-        self.Intensity_640nm = Param(0,(0, 100), unit="%", gui="slider")
-        self.ETL_output = Param(2.5,(0, 5), unit="V", gui="slider")
-        self.Resonant_output = Param(0,(0, 5), unit="V", gui="slider")
+        self._channel_map = {}
+
+        if channel_configs is None:
+            channel_configs = []
+
+        for ch_conf in channel_configs:
+            label = ch_conf["label"]
+            ch_type = ch_conf["type"]
+            channel_index = ch_conf.get("channel_index", 0)
+            resolved_channel = parse_channel_string(ch_conf["channel"], channel_index)
+            display_name = ch_conf.get("display_name")
+
+            if ch_type == "digital":
+                param = Param(ch_conf.get("default", False))
+                self._channel_map[label] = {
+                    "channel": resolved_channel,
+                    "type": "digital",
+                    "conversion_factor": 1.0,
+                }
+            elif ch_type == "analog":
+                unit = ch_conf.get("unit", "V")
+                if unit == "V":
+                    min_val = float(ch_conf.get("min", ao_min_val))
+                    max_val = float(ch_conf.get("max", ao_max_val))
+                    conversion = 1.0
+                else:
+                    min_val = float(ch_conf["min"])
+                    max_val = float(ch_conf["max"])
+                    conversion = ch_conf["conversion_factor"]
+
+                default = float(ch_conf.get("default", min_val))
+                param = Param(default, (min_val, max_val),
+                              unit=unit, gui=ch_conf.get("gui", "slider"))
+                self._channel_map[label] = {
+                    "channel": resolved_channel,
+                    "type": "analog",
+                    "conversion_factor": conversion,
+                }
+
+            if display_name:
+                param.display_name = display_name
+            object.__setattr__(self, label, param)
 
 def convert_planar_params(planar: PlanarScanningSettings):
     return PlanarScanning(
@@ -462,8 +504,8 @@ class State:
                     self.additional_output = additional_output_class_dict["mock"]()
                 else:
                     self.additional_output = additional_output_class_dict[conf["additional_output"]["name"]](
-                        ao_channels=conf["additional_output"]["ao_channels"],
-                        do_channels=conf["additional_output"]["do_channels"],
+                        ao_channels=conf["additional_output"].get("ao_channels"),
+                        do_channels=conf["additional_output"].get("do_channels"),
                     )
         except:
             pass
@@ -518,7 +560,12 @@ class State:
 
         self.shutter_settings = ShutterSettings()
         self.filterwheel_settings = FilterWheelSettings()
-        self.additional_output_settings = AdditionalOutputSettings()
+        ao_conf = conf.get("additional_output", {})
+        self.additional_output_settings = AdditionalOutputSettings(
+            channel_configs=ao_conf.get("channels", []),
+            ao_min_val=ao_conf.get("ao_min_val", 0),
+            ao_max_val=ao_conf.get("ao_max_val", 5),
+        )
 
         self.save_status: Optional[SavingStatus] = None
 
