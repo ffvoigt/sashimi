@@ -133,6 +133,21 @@ class ViewingWidget(QWidget):
             name="roi_layer",
         )
 
+        # Add crosshairs at chip center for optical alignment:
+        center_y, center_x = int(s[0] / 2), int(s[1] / 2)
+        self.crosshairs = self.viewer.add_shapes(
+            [
+                np.array([[0, center_x], [s[0], center_x]]),
+                np.array([[center_y, 0], [center_y, s[1]]]),
+            ],
+            shape_type="line",
+            edge_color="red",
+            edge_width=2,
+            blending="translucent",
+            visible=False,
+            name="crosshairs",
+        )
+
         self.main_layout = QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.bottom_layout = QHBoxLayout()
@@ -160,11 +175,14 @@ class ViewingWidget(QWidget):
         self.display_drift_chk = QCheckBox("Visualize/Hide Drift Reference")
         self.display_frame_chk = QCheckBox("Visualize/Hide Live View")
 
+        self.crosshairs_chk = QCheckBox("Crosshairs")
+
         self.bottom_layout.addWidget(self.auto_contrast_chk)
         self.bottom_layout.addWidget(self.wid_contrast_range)
         self.bottom_layout.addWidget(self.active_drift_chk)
         self.bottom_layout.addWidget(self.display_drift_chk)
         self.bottom_layout.addWidget(self.display_frame_chk)
+        self.bottom_layout.addWidget(self.crosshairs_chk)
 
         self.bottom_layout.addStretch()
 
@@ -184,6 +202,8 @@ class ViewingWidget(QWidget):
         self.display_drift_chk.clicked.connect(self.display_drift_reference)
         self.display_frame_chk.clicked.connect(self.display_frame_reference)
 
+        self.crosshairs_chk.clicked.connect(self.toggle_crosshairs)
+
         self.display_frame_chk.setChecked(True)
         self.display_frame_chk.setEnabled(False)
         self.display_drift_chk.setEnabled(
@@ -194,6 +214,9 @@ class ViewingWidget(QWidget):
 
         self.state.camera_settings.sig_param_changed.connect(
             self.launch_delayed_contrast_reset
+        )
+        self.state.camera_settings.sig_param_changed.connect(
+            self.update_crosshairs_position
         )
         self.state.light_source_settings.sig_param_changed.connect(
             self.launch_delayed_contrast_reset
@@ -333,6 +356,17 @@ class ViewingWidget(QWidget):
         """
         self.frame_layer.visible = not self.frame_layer.visible
 
+    def toggle_crosshairs(self, checked):
+        self.crosshairs.visible = checked
+
+    def update_crosshairs_position(self):
+        s = self.get_fullframe_size()
+        center_y, center_x = int(s[0] / 2), int(s[1] / 2)
+        self.crosshairs.data = [
+            np.array([[0, center_x], [s[0], center_x]]),
+            np.array([[center_y, 0], [center_y, s[1]]]),
+        ]
+
     def display_drift(self, frame=None, is_exp_running=False) -> None:
         """
         If the conditions are right displays the drift layer,
@@ -431,6 +465,7 @@ class CameraSettingsWidget(QWidget):
         elif self.roi_state == RoiState.DISPLAYED:
             self._show_roi()
             self.btn_cancel_roi.show()
+            self.wid_display.viewer.layers.selection.active = self.wid_display.roi
             self.wid_display.viewer.layers["roi_layer"].mode = Mode.SELECT
 
             # Disable binning option if an ROI is set:
