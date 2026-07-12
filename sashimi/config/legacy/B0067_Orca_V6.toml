@@ -1,0 +1,87 @@
+scanning = "ni"
+scopeless = false
+sample_rate = 100000
+illumination_paths = 1
+notifier = "none"
+array_ram_MB = 450
+
+[voxel_size]
+x = 0.26
+y = 0.26
+
+[default_paths]
+data = "C:\\Users\\B0067-WS-3"
+presets = "C:\\Users\\B0067-WS-3\\presets"
+log = "C:\\Users\\B0067-WS-3\\logs"
+scope_instructions = ""
+
+[piezo]
+scale = 0.025
+z_min = 0
+z_max = 250
+z_default = 10
+
+[email]
+user = "foo"
+password = "foo"
+
+[camera]
+id = 0
+name = "hamamatsu"
+max_sensor_resolution = [ 2048, 2048,]
+default_exposure = 60
+default_binning = 1
+
+[light_source]
+name = "mock"
+port = "COM4"
+intensity_units = "mock"
+
+[shutter]
+name = "ni"
+port = "PXI6259/port0/line1"
+
+[filterwheel]
+name = "mock"
+port = "COM9"
+default_filter = "Filter Position 1"
+filter_options = [ "Filter Position 1", "Filter Position 2", "Filter Position 3",]
+
+[additional_output]
+name = "ni"
+ao_channels = "Dev2/ao"
+do_channels = "Dev2/port0/line"
+ao_min_val = 0
+ao_max_val = 5
+
+[external_communication]
+name = "stytra"
+address = "tcp://127.0.0.1:5555"
+
+[notifier_options]
+
+[z_board.read]
+channel = "Dev1/ai0:0"
+min_val = 0
+max_val = 10
+
+[z_board.write]
+channel = "Dev1/ao0:3"
+min_val = -10
+max_val = 10
+
+[z_board.sync]
+channel = "/Dev1/ao/StartTrigger"
+
+[xy_board.write]
+channel = "PXI6733_1/ao0:1"
+min_val = -10
+max_val = 10
+display_range_min = -3
+display_range_max = 3
+lateral_min = -1
+lateral_max = 1
+lateral_freq = 500
+frontal_min = -1
+frontal_max = 1
+frontal_freq = 500
